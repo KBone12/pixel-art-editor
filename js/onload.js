@@ -1,6 +1,11 @@
 const canvas = document.getElementsByTagName("canvas")[0];
 const pixelWidth = 32;
 const pixelHeight = 32;
+const pixels = new Array(pixelHeight);
+for (let i = 0; i < pixelHeight; ++i) {
+  pixels[i] = new Array(pixelWidth);
+  pixels[i].fill(0xff00ff);
+}
 
 const scale_label = document.getElementById("scale-label");
 const scale_input = document.getElementById("scale-input");
@@ -10,7 +15,7 @@ scale_input.addEventListener("input", event => {
   const scale = parseInt(event.target.value);
   scale_label.innerText = "x" + scale;
   setCanvasSize(canvas, pixelWidth, pixelHeight, scale);
-  draw(canvas, pixelWidth, pixelHeight);
+  draw(canvas, pixelWidth, pixelHeight, pixels);
 });
 
 Array.prototype.map.call(document.getElementsByClassName("canvas-wrapper"),
@@ -50,10 +55,21 @@ function setCanvasSize(canvas, pixelWidth, pixelHeight, scale) {
   canvas.height = pixelHeight * scale;
 }
 
-function draw(canvas, pixelWidth, pixelHeight) {
+function draw(canvas, pixelWidth, pixelHeight, pixels) {
   const canvasWidth = canvas.width;
   const canvasHeight = canvas.height;
-  renderGrids(canvas, canvasWidth / pixelWidth, canvasHeight / pixelHeight);
+  const scaleX = canvasWidth / pixelWidth;
+  const scaleY = canvasHeight / pixelHeight;
+
+  const context = canvas.getContext("2d");
+  for (let i = 0; i < pixelHeight; ++i) {
+    for (let j = 0; j < pixelWidth; ++j) {
+      context.fillStyle = "#" + pixels[i][j].toString(16);
+      context.fillRect(j * scaleX, i * scaleY, scaleX, scaleY);
+    }
+  }
+
+  renderGrids(canvas, scaleX, scaleY);
 }
 
-draw(canvas, pixelWidth, pixelHeight);
+draw(canvas, pixelWidth, pixelHeight, pixels);
