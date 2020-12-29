@@ -1,11 +1,111 @@
 "use strict";
 
+class AbstractPenType {
+  penDown(_pixels, _x, _y) {
+  }
+
+  penMove(_pixels, _x, _y) {
+  }
+
+  penUp(_pixels, _x, _y) {
+  }
+}
+
+class FreeCurvePen extends AbstractPenType {
+  _drawing;
+  _penX;
+  _penY;
+
+  constructor() {
+    super();
+
+    this._drawing = false;
+    this._penX = 0;
+    this._penY = 0;
+  }
+
+  penDown(_pixels, x, y) {
+    this._drawing = true;
+    this._penX = x;
+    this._penY = y;
+  }
+
+  penMove(pixels, x, y) {
+    if (this._drawing) {
+      pixels[this._penY][this._penX] = 0x000000;
+
+      this._penX = x;
+      this._penY = y;
+    }
+  }
+
+  penUp(pixels, _x, _y) {
+    if (this._drawing) {
+      this.penMove(pixels, this._penX, this._penY);
+    }
+    this._drawing = false;
+    this._penX = 0;
+    this._penY = 0;
+  }
+}
+
+class StraightLinePen extends AbstractPenType {
+  _backupPixels;
+  _startX;
+  _startY;
+  _delta;
+
+  constructor() {
+    super();
+
+    this._backupPixels = undefined;
+    this._startX = 0;
+    this._startY = 0;
+    this._delta = 0.25;
+  }
+
+  penDown(pixels, x, y) {
+    this._backupPixels = pixels.slice();
+    this._startX = x + 0.5;
+    this._startY = y + 0.5;
+  }
+
+  penMove(_pixels, x, y) {
+    if (this._backupPixels) {
+      for (let i = 0; i < _pixels.length; ++i) {
+        _pixels[i] = this._backupPixels[i].slice();
+      }
+
+      const targetX = x + 0.5;
+      const targetY = y + 0.5;
+      const length = Math.sqrt(Math.pow(targetX - this._startX, 2.0) + Math.pow(targetY - this._startY, 2));
+
+      if (length === 0.0) {
+        _pixels[parseInt(this._startY)][parseInt(this._startX)] = 0x000000;
+      } else {
+        for (let t = 0.0; t <= length; t += this._delta) {
+          const currentX = parseInt((length - t) / length * this._startX + t / length * targetX);
+          const currentY = parseInt((length - t) / length * this._startY + t / length * targetY);
+          _pixels[currentY][currentX] = 0x000000;
+        }
+      }
+    }
+  }
+
+  penUp(_pixels, _x, _y) {
+    if (this._backupPixels) {
+    }
+    this._backupPixels = undefined;
+  }
+}
+
 class PixelCanvas {
   _canvas;
   _scale;
   _width;
   _height;
   _pixels;
+  _penType;
 
   constructor(canvas, width, height) {
     this._canvas = canvas;
@@ -17,6 +117,7 @@ class PixelCanvas {
       this._pixels[i] = new Array(this._width);
       this._pixels[i].fill(0xffffff);
     }
+    this._penType = new FreeCurvePen();
   }
 
   resize(scale) {
@@ -25,10 +126,33 @@ class PixelCanvas {
     this._scale = scale;
   }
 
-  putPixel(canvasX, canvasY) {
+  selectPenType(penType) {
+    switch (penType) {
+      case "free":
+        this._penType = new FreeCurvePen();
+        break;
+      case "straight":
+        this._penType = new StraightLinePen();
+        break;
+    }
+  }
+
+  penDown(canvasX, canvasY) {
     const x = parseInt(canvasX / this._scale);
     const y = parseInt(canvasY / this._scale);
-    this._pixels[y][x] = 0x000000;
+    this._penType.penDown(this._pixels, x, y);
+  }
+
+  penMove(canvasX, canvasY) {
+    const x = parseInt(canvasX / this._scale);
+    const y = parseInt(canvasY / this._scale);
+    this._penType.penMove(this._pixels, x, y);
+  }
+
+  penUp(canvasX, canvasY) {
+    const x = parseInt(canvasX / this._scale);
+    const y = parseInt(canvasY / this._scale);
+    this._penType.penUp(this._pixels, x, y);
   }
 
   render() {
@@ -58,9 +182,6 @@ class PixelCanvas {
 }
 
 let pixelCanvas = undefined;
-let drawing = false;
-let offsetX = 0;
-let offsetY = 0;
 
 const scale_label = document.getElementById("scale-label");
 const scale_input = document.getElementById("scale-input");
@@ -85,37 +206,29 @@ document.getElementById("create-new-button").addEventListener("click", _ => {
   pixelCanvas.render();
 });
 
-const canvas = document.getElementById("canvas");
-canvas.addEventListener("click", event => {
-  const rect = event.target.getBoundingClientRect();
-  const x = parseInt(event.clientX - rect.left);
-  const y = parseInt(event.clientY - rect.top);
-  if (pixelCanvas) {
-    pixelCanvas.putPixel(x, y);
-    pixelCanvas.render();
-  }
+Array.prototype.map.call(document.getElementsByName("pen-type"), element => {
+  element.addEventListener("change", event => {
+    if (pixelCanvas && event.target.checked) {
+      pixelCanvas.selectPenType(event.target.value);
+    }
+  });
 });
+
+const canvas = document.getElementById("canvas");
 canvas.addEventListener("mousedown", event => {
   if (pixelCanvas) {
-    drawing = true;
-    offsetX = event.offsetX;
-    offsetY = event.offsetY;
+    pixelCanvas.penDown(event.offsetX, event.offsetY);
   }
 });
-canvas.addEventListener("mouseup", _ => {
-  if (pixelCanvas && drawing) {
-    pixelCanvas.putPixel(offsetX, offsetY);
+canvas.addEventListener("mouseup", event => {
+  if (pixelCanvas) {
+    pixelCanvas.penUp(event.offsetX, event.offsetY);
     pixelCanvas.render();
   }
-
-  drawing = false;
 });
 canvas.addEventListener("mousemove", event => {
-  if (pixelCanvas && drawing) {
-    pixelCanvas.putPixel(offsetX, offsetY);
+  if (pixelCanvas) {
+    pixelCanvas.penMove(event.offsetX, event.offsetY);
     pixelCanvas.render();
-
-    offsetX = event.offsetX;
-    offsetY = event.offsetY;
   }
 });
