@@ -34,6 +34,16 @@ Array.prototype.map.call(document.getElementsByClassName("canvas-wrapper"),
   }
 );
 
+canvas.addEventListener("click", event => {
+  const width = event.target.width;
+  const height = event.target.height;
+  const rect = event.target.getBoundingClientRect();
+  const x = parseInt((event.clientX - rect.left) / (width / pixelWidth));
+  const y = parseInt((event.clientY - rect.top) / (height / pixelHeight));
+  pixels[y][x] = 0x000000;
+  draw(event.target, pixelWidth, pixelHeight, pixels);
+});
+
 function renderGrids(canvas, scaleX, scaleY) {
   const width = canvas.width;
   const height = canvas.height;
@@ -62,9 +72,11 @@ function draw(canvas, pixelWidth, pixelHeight, pixels) {
   const scaleY = canvasHeight / pixelHeight;
 
   const context = canvas.getContext("2d");
+  context.clearRect(0, 0, canvasWidth, canvasHeight);
+
   for (let i = 0; i < pixelHeight; ++i) {
     for (let j = 0; j < pixelWidth; ++j) {
-      context.fillStyle = "#" + pixels[i][j].toString(16);
+      context.fillStyle = "#" + ("000000" + pixels[i][j].toString(16)).slice(-6);
       context.fillRect(j * scaleX, i * scaleY, scaleX, scaleY);
     }
   }
