@@ -123,6 +123,65 @@ class StraightLinePen extends AbstractPenType {
   }
 }
 
+class EllipsePen extends AbstractPenType {
+  _color;
+  _backupPixels;
+  _startX;
+  _startY;
+  _delta;
+
+  constructor() {
+    super();
+
+    this._color = 0x000000;
+    this._backupPixels = undefined;
+    this._startX = 0;
+    this._startY = 0;
+    this._delta = Math.PI / 180.0;
+  }
+
+  getColor() {
+    return this._color;
+  }
+  setColor(color) {
+    this._color = color;
+  }
+
+  penDown(pixels, x, y) {
+    this._backupPixels = pixels.slice();
+    this._startX = x + 0.5;
+    this._startY = y + 0.5;
+  }
+
+  penMove(pixels, x, y) {
+    if (this._backupPixels) {
+      for (let i = 0; i < pixels.length; ++i) {
+        pixels[i] = this._backupPixels[i].slice();
+      }
+
+      const targetX = x + 0.5;
+      const targetY = y + 0.5;
+      const centerX = (targetX + this._startX) / 2.0;
+      const centerY = (targetY + this._startY) / 2.0;
+      const radius = Math.sqrt(Math.pow(targetX - centerX, 2.0) + Math.pow(targetY - centerY, 2.0));
+
+      for (let t = 0.0; t <= 2.0 * Math.PI; t += this._delta) {
+        const currentX = parseInt(radius * Math.cos(t) + centerX);
+        const currentY = parseInt(radius * Math.sin(t) + centerY);
+        if (currentX >= 0 && currentX < pixels[0].length && currentY >= 0 && currentY < pixels.length) {
+          pixels[currentY][currentX] = this._color;
+        }
+      }
+    }
+  }
+
+  penUp(_pixels, _x, _y) {
+    if (this._backupPixels) {
+    }
+    this._backupPixels = undefined;
+  }
+}
+
 class PixelCanvas {
   _canvas;
   _scale;
@@ -193,6 +252,9 @@ class PixelCanvas {
         break;
       case "straight":
         this._penType = new StraightLinePen();
+        break;
+      case "ellipse":
+        this._penType = new EllipsePen();
         break;
     }
     this._penType.setColor(currentColor);
@@ -271,6 +333,7 @@ document.getElementById("create-new-button").addEventListener("click", _ => {
 
   const canvas = document.getElementById("canvas");
   pixelCanvas = new PixelCanvas(canvas, 32, 32);
+  pixelCanvas.selectPenType(Array.prototype.find.call(document.getElementsByName("pen-type"), element => element.checked).value);
   pixelCanvas.resize(parseInt(scale_input.value));
   pixelCanvas.render();
 });
