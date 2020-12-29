@@ -24,7 +24,13 @@
       <label><input type="radio" name="pen-type" value="straight" /><img alt="Straight line" /></label>
       <div id="color-palette-wrapper">
         <span id="color-palette"></span>
-        current color: <span class="color-palette-element" id="current-color"></span>
+        selected color: <span class="color-palette-element" id="selected-color"></span>
+        <button id="remove-color-button">Remove selected color</button>
+        <div>
+          <span class="color-palette-element" id="current-color"></span>
+          <input type="color" id="color-chooser"/>
+          <button id="add-color-button">Add the color</button>
+        </div>
       </div>
     </p>
     <div class="canvas-wrapper">

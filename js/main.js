@@ -296,7 +296,8 @@ Array.prototype.map.call(document.getElementsByName("pen-type"), element => {
 });
 
 const color_palette = document.getElementById("color-palette");
-const current_color_element = document.getElementById("current-color");
+const selected_color_element = document.getElementById("selected-color");
+let selected_color = 0x000000;
 const colors = [0x000000, 0xff0000, 0x00ff00, 0x0000ff, 0x00ffff, 0xff00ff, 0xffff00, 0xffffff];
 colors.map(color => {
   const button = document.createElement("button");
@@ -306,11 +307,49 @@ colors.map(color => {
     if (pixelCanvas) {
       pixelCanvas.setColor(color);
     }
-    current_color_element.style = `background-color: ${"#" + ("000000" + color.toString(16)).slice(-6)};`;
+    selected_color = color;
+    selected_color_element.style = `background-color: ${"#" + ("000000" + selected_color.toString(16)).slice(-6)};`;
   });
   color_palette.appendChild(button);
 });
-current_color_element.style = `background-color: #000000;`;
+selected_color_element.style = `background-color: ${"#" + ("000000" + selected_color.toString(16)).slice(-6)};`;
+
+const current_color_element = document.getElementById("current-color");
+let current_color = 0x000000;
+current_color_element.style = `background-color: #000000`;
+document.getElementById("color-chooser").addEventListener("change", event => {
+  current_color_element.style = `background-color: ${event.target.value}`;
+  current_color = parseInt("0x" + event.target.value.slice(-6), 16);
+});
+document.getElementById("add-color-button").addEventListener("click", _ => {
+  if (!colors.includes(current_color)) {
+    colors.push(current_color);
+    const button = document.createElement("button");
+    button.className = "color-palette-element";
+    button.style = `background-color: ${"#" + ("000000" + current_color.toString(16)).slice(-6)};`;
+    button.addEventListener("click", _ => {
+      if (pixelCanvas) {
+        pixelCanvas.setColor(current_color);
+      }
+      selected_color = current_color;
+      selected_color_element.style = `background-color: ${"#" + ("000000" + selected_color.toString(16)).slice(-6)};`;
+    });
+    color_palette.appendChild(button);
+  }
+});
+document.getElementById("remove-color-button").addEventListener("click", _ => {
+  if (colors.length > 1) {
+    const index = colors.findIndex(color => color === selected_color);
+    colors.splice(index, 1);
+    color_palette.removeChild(color_palette.children[index]);
+    if (index < colors.length) {
+      selected_color = colors[index];
+    } else {
+      selected_color = colors[0];
+    }
+    selected_color_element.style = `background-color: ${"#" + ("000000" + selected_color.toString(16)).slice(-6)};`;
+  }
+});
 
 const canvas = document.getElementById("canvas");
 canvas.addEventListener("mousedown", event => {
