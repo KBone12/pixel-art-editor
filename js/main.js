@@ -153,6 +153,10 @@ class PixelCanvas {
     this._scale = scale;
   }
 
+  withGrids(withGrids) {
+    this._withGrids = withGrids;
+  }
+
   selectPenType(penType) {
     switch (penType) {
       case "free":
@@ -220,6 +224,12 @@ scale_input.addEventListener("input", event => {
   scale_label.innerText = "x" + scale;
   if (pixelCanvas) {
     pixelCanvas.resize(scale);
+    pixelCanvas.render();
+  }
+});
+document.getElementById("with-grids").addEventListener("change", event => {
+  if (pixelCanvas) {
+    pixelCanvas.withGrids(event.target.checked);
     pixelCanvas.render();
   }
 });
