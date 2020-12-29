@@ -106,6 +106,7 @@ class PixelCanvas {
   _height;
   _pixels;
   _penType;
+  _withGrids;
 
   constructor(canvas, width, height) {
     this._canvas = canvas;
@@ -118,6 +119,32 @@ class PixelCanvas {
       this._pixels[i].fill(0xffffff);
     }
     this._penType = new FreeCurvePen();
+    this._withGrids = true;
+  }
+
+  saveAsPNG() {
+    this.saveToFile("image/png", "image.png");
+  }
+
+  saveAsBMP() {
+    this.saveToFile("image/bmp", "image.bmp");
+  }
+
+  saveToFile(mime, fileName) {
+    const originalScale = this._scale;
+    const originalWithGrids = this._withGrids;
+
+    this.resize(1.0);
+    this._withGrids = false;
+    this.render();
+    const dummyLink = document.createElement("a");
+    dummyLink.href = this._canvas.toDataURL(mime);
+    dummyLink.download = fileName;
+    dummyLink.click();
+
+    this.resize(originalScale);
+    this._withGrids = originalWithGrids;
+    this.render();
   }
 
   resize(scale) {
@@ -168,16 +195,18 @@ class PixelCanvas {
     }
 
     // Render grids
-    context.beginPath();
-    for (let x = 0; x <= this._canvas.width; x += this._scale) {
-      context.moveTo(x, 0);
-      context.lineTo(x, this._canvas.height);
+    if (this._withGrids) {
+      context.beginPath();
+      for (let x = 0; x <= this._canvas.width; x += this._scale) {
+        context.moveTo(x, 0);
+        context.lineTo(x, this._canvas.height);
+      }
+      for (let y = 0; y <= this._canvas.height; y += this._scale) {
+        context.moveTo(0, y);
+        context.lineTo(this._canvas.width, y);
+      }
+      context.stroke();
     }
-    for (let y = 0; y <= this._canvas.height; y += this._scale) {
-      context.moveTo(0, y);
-      context.lineTo(this._canvas.width, y);
-    }
-    context.stroke();
   }
 }
 
@@ -204,6 +233,18 @@ document.getElementById("create-new-button").addEventListener("click", _ => {
   pixelCanvas = new PixelCanvas(canvas, 32, 32);
   pixelCanvas.resize(parseInt(scale_input.value));
   pixelCanvas.render();
+});
+
+document.getElementById("save-as-png").addEventListener("click", _ => {
+  if (pixelCanvas) {
+    pixelCanvas.saveAsPNG();
+  }
+});
+
+document.getElementById("save-as-bmp").addEventListener("click", _ => {
+  if (pixelCanvas) {
+    pixelCanvas.saveAsBMP();
+  }
 });
 
 Array.prototype.map.call(document.getElementsByName("pen-type"), element => {
