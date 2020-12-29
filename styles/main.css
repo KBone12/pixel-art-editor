@@ -1,4 +1,8 @@
+canvas {
+  display: block;
+  margin: auto;
+}
+
 .canvas-wrapper {
   width: 100%;
-  height: 100%;
 }
