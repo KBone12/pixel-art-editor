@@ -323,15 +323,16 @@ document.getElementById("color-chooser").addEventListener("change", event => {
 });
 document.getElementById("add-color-button").addEventListener("click", _ => {
   if (!colors.includes(current_color)) {
-    colors.push(current_color);
+    const color = current_color;
+    colors.push(color);
     const button = document.createElement("button");
     button.className = "color-palette-element";
-    button.style = `background-color: ${"#" + ("000000" + current_color.toString(16)).slice(-6)};`;
+    button.style = `background-color: ${"#" + ("000000" + color.toString(16)).slice(-6)};`;
     button.addEventListener("click", _ => {
       if (pixelCanvas) {
-        pixelCanvas.setColor(current_color);
+        pixelCanvas.setColor(color);
       }
-      selected_color = current_color;
+      selected_color = color;
       selected_color_element.style = `background-color: ${"#" + ("000000" + selected_color.toString(16)).slice(-6)};`;
     });
     color_palette.appendChild(button);
