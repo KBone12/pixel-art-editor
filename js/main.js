@@ -1,6 +1,12 @@
 "use strict";
 
 class AbstractPenType {
+  getColor() {
+    return 0x000000;
+  }
+  setColor(_color) {
+  }
+
   penDown(_pixels, _x, _y) {
   }
 
@@ -12,6 +18,7 @@ class AbstractPenType {
 }
 
 class FreeCurvePen extends AbstractPenType {
+  _color;
   _drawing;
   _penX;
   _penY;
@@ -19,9 +26,17 @@ class FreeCurvePen extends AbstractPenType {
   constructor() {
     super();
 
+    this._color = 0x000000;
     this._drawing = false;
     this._penX = 0;
     this._penY = 0;
+  }
+
+  getColor() {
+    return this._color;
+  }
+  setColor(color) {
+    this._color = color;
   }
 
   penDown(_pixels, x, y) {
@@ -32,7 +47,7 @@ class FreeCurvePen extends AbstractPenType {
 
   penMove(pixels, x, y) {
     if (this._drawing) {
-      pixels[this._penY][this._penX] = 0x000000;
+      pixels[this._penY][this._penX] = this._color;
 
       this._penX = x;
       this._penY = y;
@@ -50,6 +65,7 @@ class FreeCurvePen extends AbstractPenType {
 }
 
 class StraightLinePen extends AbstractPenType {
+  _color;
   _backupPixels;
   _startX;
   _startY;
@@ -58,10 +74,18 @@ class StraightLinePen extends AbstractPenType {
   constructor() {
     super();
 
+    this._color = 0x000000;
     this._backupPixels = undefined;
     this._startX = 0;
     this._startY = 0;
     this._delta = 0.25;
+  }
+
+  getColor() {
+    return this._color;
+  }
+  setColor(color) {
+    this._color = color;
   }
 
   penDown(pixels, x, y) {
@@ -81,12 +105,12 @@ class StraightLinePen extends AbstractPenType {
       const length = Math.sqrt(Math.pow(targetX - this._startX, 2.0) + Math.pow(targetY - this._startY, 2));
 
       if (length === 0.0) {
-        _pixels[parseInt(this._startY)][parseInt(this._startX)] = 0x000000;
+        _pixels[parseInt(this._startY)][parseInt(this._startX)] = this._color;
       } else {
         for (let t = 0.0; t <= length; t += this._delta) {
           const currentX = parseInt((length - t) / length * this._startX + t / length * targetX);
           const currentY = parseInt((length - t) / length * this._startY + t / length * targetY);
-          _pixels[currentY][currentX] = 0x000000;
+          _pixels[currentY][currentX] = this._color;
         }
       }
     }
@@ -153,11 +177,16 @@ class PixelCanvas {
     this._scale = scale;
   }
 
+  setColor(color) {
+    this._penType.setColor(color);
+  }
+
   withGrids(withGrids) {
     this._withGrids = withGrids;
   }
 
   selectPenType(penType) {
+    const currentColor = this._penType.getColor();
     switch (penType) {
       case "free":
         this._penType = new FreeCurvePen();
@@ -166,6 +195,7 @@ class PixelCanvas {
         this._penType = new StraightLinePen();
         break;
     }
+    this._penType.setColor(currentColor);
   }
 
   penDown(canvasX, canvasY) {
@@ -264,6 +294,23 @@ Array.prototype.map.call(document.getElementsByName("pen-type"), element => {
     }
   });
 });
+
+const color_palette = document.getElementById("color-palette");
+const current_color_element = document.getElementById("current-color");
+const colors = [0x000000, 0xff0000, 0x00ff00, 0x0000ff, 0x00ffff, 0xff00ff, 0xffff00, 0xffffff];
+colors.map(color => {
+  const button = document.createElement("button");
+  button.className = "color-palette-element";
+  button.style = `background-color: ${"#" + ("000000" + color.toString(16)).slice(-6)};`;
+  button.addEventListener("click", _ => {
+    if (pixelCanvas) {
+      pixelCanvas.setColor(color);
+    }
+    current_color_element.style = `background-color: ${"#" + ("000000" + color.toString(16)).slice(-6)};`;
+  });
+  color_palette.appendChild(button);
+});
+current_color_element.style = `background-color: #000000;`;
 
 const canvas = document.getElementById("canvas");
 canvas.addEventListener("mousedown", event => {
