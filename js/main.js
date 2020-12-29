@@ -439,3 +439,34 @@ canvas.addEventListener("mousemove", event => {
     pixelCanvas.render();
   }
 });
+let lastX = undefined;
+let lastY = undefined;
+canvas.addEventListener("touchstart", event => {
+  event.preventDefault();
+  if (pixelCanvas) {
+    const canvasRect = event.target.getBoundingClientRect();
+    pixelCanvas.penDown(event.touches[0].pageX - canvasRect.left, event.touches[0].pageY - canvasRect.top);
+    pixelCanvas.render();
+
+    lastX = event.touches[0].pageX - canvasRect.left;
+    lastY = event.touches[0].pageY - canvasRect.top;
+  }
+});
+canvas.addEventListener("touchend", event => {
+  event.preventDefault();
+  if (pixelCanvas) {
+    pixelCanvas.penUp(lastX, lastY);
+    pixelCanvas.render();
+  }
+});
+canvas.addEventListener("touchmove", event => {
+  event.preventDefault();
+  if (pixelCanvas) {
+    const canvasRect = event.target.getBoundingClientRect();
+    pixelCanvas.penMove(event.touches[0].pageX - canvasRect.left, event.touches[0].pageY - canvasRect.top);
+    pixelCanvas.render();
+
+    lastX = event.touches[0].pageX - canvasRect.left;
+    lastY = event.touches[0].pageY - canvasRect.top;
+  }
+});
