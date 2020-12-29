@@ -11,13 +11,17 @@
     <p>Online editor for pixel arts developed by kbone</p>
   </header>
   <main>
-    Scale: <label id="scale-label" for="scale-input"></label>
-    <input type="range" min="1" max="32" value="1" id="scale-input" />
+    <p>
+    <button id="create-new-button">Create a new</button>
+    </p>
+    <p>
+      Scale: <label id="scale-label" for="scale-input"></label>
+      <input type="range" min="1" max="32" value="1" id="scale-input" />
+    </p>
     <div class="canvas-wrapper">
-      <canvas></canvas>
+      <canvas id="canvas"></canvas>
     </div>
   </main>
-  <script defer src="/js/defer.js"></script>
-  <script src="/js/onload.js"></script>
+  <script defer src="/js/main.js"></script>
 </body>
 </html>
