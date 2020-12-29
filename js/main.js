@@ -58,6 +58,9 @@ class PixelCanvas {
 }
 
 let pixelCanvas = undefined;
+let drawing = false;
+let offsetX = 0;
+let offsetY = 0;
 
 const scale_label = document.getElementById("scale-label");
 const scale_input = document.getElementById("scale-input");
@@ -71,7 +74,7 @@ scale_input.addEventListener("input", event => {
   }
 });
 
-document.getElementById("create-new-button").addEventListener("click", () => {
+document.getElementById("create-new-button").addEventListener("click", _ => {
   if (pixelCanvas) {
     pixelCanvas = undefined;
   }
@@ -82,12 +85,37 @@ document.getElementById("create-new-button").addEventListener("click", () => {
   pixelCanvas.render();
 });
 
-document.getElementById("canvas").addEventListener("click", event => {
+const canvas = document.getElementById("canvas");
+canvas.addEventListener("click", event => {
   const rect = event.target.getBoundingClientRect();
   const x = parseInt(event.clientX - rect.left);
   const y = parseInt(event.clientY - rect.top);
   if (pixelCanvas) {
     pixelCanvas.putPixel(x, y);
     pixelCanvas.render();
+  }
+});
+canvas.addEventListener("mousedown", event => {
+  if (pixelCanvas) {
+    drawing = true;
+    offsetX = event.offsetX;
+    offsetY = event.offsetY;
+  }
+});
+canvas.addEventListener("mouseup", _ => {
+  if (pixelCanvas && drawing) {
+    pixelCanvas.putPixel(offsetX, offsetY);
+    pixelCanvas.render();
+  }
+
+  drawing = false;
+});
+canvas.addEventListener("mousemove", event => {
+  if (pixelCanvas && drawing) {
+    pixelCanvas.putPixel(offsetX, offsetY);
+    pixelCanvas.render();
+
+    offsetX = event.offsetX;
+    offsetY = event.offsetY;
   }
 });
