@@ -236,6 +236,9 @@ class PixelCanvas {
     this._scale = scale;
   }
 
+  getColor() {
+    return this._penType.getColor();
+  }
   setColor(color) {
     this._penType.setColor(color);
   }
@@ -327,13 +330,16 @@ document.getElementById("with-grids").addEventListener("change", event => {
 });
 
 document.getElementById("create-new-button").addEventListener("click", _ => {
+  let color = 0x000000;
   if (pixelCanvas) {
+    color = pixelCanvas.getColor()
     pixelCanvas = undefined;
   }
 
   const canvas = document.getElementById("canvas");
   pixelCanvas = new PixelCanvas(canvas, 32, 32);
   pixelCanvas.selectPenType(Array.prototype.find.call(document.getElementsByName("pen-type"), element => element.checked).value);
+  pixelCanvas.setColor(color);
   pixelCanvas.resize(parseInt(scale_input.value));
   pixelCanvas.render();
 });
