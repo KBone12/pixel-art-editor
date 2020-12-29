@@ -1,3 +1,18 @@
+const canvas = document.getElementsByTagName("canvas")[0];
+const pixelWidth = 32;
+const pixelHeight = 32;
+
+const scale_label = document.getElementById("scale-label");
+const scale_input = document.getElementById("scale-input");
+scale_label.innerText = "x" + scale_input.value;
+setCanvasSize(canvas, pixelWidth, pixelHeight, parseInt(scale_input.value));
+scale_input.addEventListener("input", event => {
+  const scale = parseInt(event.target.value);
+  scale_label.innerText = "x" + scale;
+  setCanvasSize(canvas, pixelWidth, pixelHeight, scale);
+  draw(canvas, pixelWidth, pixelHeight);
+});
+
 Array.prototype.map.call(document.getElementsByClassName("canvas-wrapper"),
   element => {
     const width = element.clientWidth;
@@ -30,9 +45,15 @@ function renderGrids(canvas, scaleX, scaleY) {
   context.stroke();
 }
 
-const canvas = document.getElementsByTagName("canvas")[0];
-const pixelWidth = 32;
-const pixelHeight = 32;
-const canvasWidth = canvas.width;
-const canvasHeight = canvas.height;
-renderGrids(canvas, canvasWidth / pixelWidth, canvasHeight / pixelHeight);
+function setCanvasSize(canvas, pixelWidth, pixelHeight, scale) {
+  canvas.width = pixelWidth * scale;
+  canvas.height = pixelHeight * scale;
+}
+
+function draw(canvas, pixelWidth, pixelHeight) {
+  const canvasWidth = canvas.width;
+  const canvasHeight = canvas.height;
+  renderGrids(canvas, canvasWidth / pixelWidth, canvasHeight / pixelHeight);
+}
+
+draw(canvas, pixelWidth, pixelHeight);
