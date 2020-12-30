@@ -329,6 +329,28 @@ document.getElementById("with-grids").addEventListener("change", event => {
   }
 });
 
+let width = 32;
+let height = 32;
+document.getElementById("image-width").addEventListener("change", event => {
+  try {
+    const tmp = parseInt(event.target.value);
+    if (tmp >= 0 && tmp <= 128) {
+      width = tmp;
+    }
+  } catch (e) {
+    console.error(e);
+  }
+});
+document.getElementById("image-height").addEventListener("change", event => {
+  try {
+    const tmp = parseInt(event.target.value);
+    if (tmp >= 0 && tmp <= 128) {
+      height = tmp;
+    }
+  } catch (e) {
+    console.error(e);
+  }
+});
 document.getElementById("create-new-button").addEventListener("click", _ => {
   let color = 0x000000;
   if (pixelCanvas) {
@@ -337,7 +359,7 @@ document.getElementById("create-new-button").addEventListener("click", _ => {
   }
 
   const canvas = document.getElementById("canvas");
-  pixelCanvas = new PixelCanvas(canvas, 32, 32);
+  pixelCanvas = new PixelCanvas(canvas, width, height);
   pixelCanvas.selectPenType(Array.prototype.find.call(document.getElementsByName("pen-type"), element => element.checked).value);
   pixelCanvas.setColor(color);
   pixelCanvas.resize(parseInt(scale_input.value));
